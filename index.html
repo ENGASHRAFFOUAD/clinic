@@ -1,0 +1,2446 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar" translate="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="google" content="notranslate">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام العيادة النفسية الذكي المتكامل</title>
+    <!-- Google Font Cairo -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --primary-light: #eff6ff;
+            --success: #10b981;
+            --success-light: #ecfdf5;
+            --danger: #ef4444;
+            --danger-light: #fef2f2;
+            --warning: #f59e0b;
+            --warning-light: #fffbeb;
+            --purple: #8b5cf6;
+            --purple-light: #f5f3ff;
+            --dark: #1e293b;
+            --slate: #64748b;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --border: #e2e8f0;
+            --radius: 12px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Cairo', system-ui, -apple-system, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: #1e293b;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* شريط التنبيه عند انقطاع الإنترنت */
+        #offlineBanner {
+            background: linear-gradient(90deg, #dc2626, #b91c1c);
+            color: white;
+            text-align: center;
+            padding: 10px 15px;
+            font-weight: 600;
+            font-size: 13px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: var(--shadow);
+            display: none;
+        }
+
+        /* شريط التنبيهات المنبثقة (Toast) */
+        #toastContainer {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 99999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+
+        .toast {
+            pointer-events: auto;
+            min-width: 280px;
+            max-width: 400px;
+            padding: 12px 18px;
+            border-radius: var(--radius);
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: var(--shadow-lg);
+            animation: slideIn 0.3s ease-out;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .toast-success { background-color: var(--success); }
+        .toast-error { background-color: var(--danger); }
+        .toast-info { background-color: var(--primary); }
+
+        @keyframes slideIn {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* النافبار */
+        .navbar {
+            background-color: var(--dark);
+            color: white;
+            padding: 14px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 900;
+        }
+
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .navbar-brand h1 {
+            font-size: 18px;
+            font-weight: 800;
+            margin: 0;
+            letter-spacing: -0.3px;
+        }
+
+        .net-status {
+            font-size: 11px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .net-online { background-color: rgba(16, 185, 129, 0.2); color: #34d399; }
+        .net-offline { background-color: rgba(239, 68, 68, 0.2); color: #f87171; }
+
+        .navbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .container {
+            max-width: 1240px;
+            margin: 24px auto;
+            padding: 0 16px;
+            width: 100%;
+            flex: 1;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 22px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            transition: box-shadow 0.2s ease;
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-lg);
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 900px) {
+            .grid-2, .grid-3 { grid-template-columns: 1fr; }
+        }
+
+        /* عناصر النماذج */
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 700;
+            margin-top: 10px;
+            margin-bottom: 4px;
+            color: #334155;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 10px 14px;
+            margin-bottom: 8px;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            background-color: #fff;
+            color: #1e293b;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        }
+
+        /* الأزرار */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 9px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 13px;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            opacity: 0.92;
+            transform: translateY(-1px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary { background-color: var(--primary); color: white; }
+        .btn-success { background-color: var(--success); color: white; }
+        .btn-danger { background-color: var(--danger); color: white; }
+        .btn-warning { background-color: var(--warning); color: #fff; }
+        .btn-purple { background-color: var(--purple); color: white; }
+        .btn-dark { background-color: var(--dark); color: white; }
+        .btn-outline { background: transparent; border: 1.5px solid var(--border); color: #475569; }
+        .btn-outline:hover { background-color: #f1f5f9; }
+
+        .hidden { display: none !important; }
+
+        /* شاشات الحسابات والإحصائيات */
+        .stat-card {
+            background: white;
+            padding: 16px;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            border-right: 4px solid var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .stat-num {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--dark);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--slate);
+            font-weight: 600;
+        }
+
+        /* الشات */
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 480px;
+        }
+
+        .chat-box {
+            flex: 1;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 14px;
+            background: #fafbfc;
+            margin-bottom: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .msg {
+            padding: 10px 14px;
+            border-radius: 12px;
+            max-width: 80%;
+            font-size: 13.5px;
+            line-height: 1.5;
+            position: relative;
+            word-break: break-word;
+        }
+
+        .msg-doctor {
+            background-color: #dbeafe;
+            color: #1e3a8a;
+            align-self: flex-start;
+            border-bottom-right-radius: 3px;
+        }
+
+        .msg-user {
+            background-color: #f1f5f9;
+            color: #334155;
+            align-self: flex-end;
+            border-bottom-left-radius: 3px;
+        }
+
+        .msg-sender {
+            font-weight: 800;
+            font-size: 11px;
+            display: block;
+            margin-bottom: 2px;
+            opacity: 0.85;
+        }
+
+        .msg-time {
+            font-size: 10px;
+            opacity: 0.6;
+            margin-top: 4px;
+            text-align: left;
+            display: block;
+        }
+
+        /* الصور والبادجات */
+        .avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--border);
+        }
+
+        .avatar-lg {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--primary);
+            display: block;
+            margin: 0 auto 12px;
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .badge-paid { background: var(--success-light); color: var(--success); }
+        .badge-unpaid { background: var(--warning-light); color: var(--warning); }
+        .badge-role { background: var(--primary-light); color: var(--primary); }
+
+        /* الجداول */
+        .table-responsive {
+            overflow-x: auto;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13.5px;
+            text-align: right;
+            background: white;
+        }
+
+        th {
+            background-color: #f8fafc;
+            color: #475569;
+            font-weight: 700;
+            padding: 12px 14px;
+            border-bottom: 2px solid var(--border);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+        }
+
+        tbody tr:hover {
+            background-color: #f8fafc;
+        }
+
+        /* عناصر الروشتة والجلسات */
+        .med-item, .session-item {
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-right: 4px solid var(--purple);
+            padding: 14px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .session-item { border-right-color: var(--primary); }
+
+        .date-stamp {
+            font-size: 11px;
+            color: var(--slate);
+            background: #f1f5f9;
+            padding: 2px 8px;
+            border-radius: 6px;
+            display: inline-block;
+            margin-top: 6px;
+            font-weight: 600;
+        }
+
+        /* متتبع المزاج (Mood Tracker) */
+        .mood-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            margin: 12px 0;
+        }
+
+        .mood-btn {
+            background: #fff;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            padding: 10px 4px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .mood-btn:hover {
+            border-color: var(--primary);
+            transform: scale(1.05);
+        }
+
+        .mood-btn.selected {
+            border-color: var(--primary);
+            background-color: var(--primary-light);
+            font-weight: bold;
+        }
+
+        .mood-icon { font-size: 24px; display: block; margin-bottom: 2px; }
+        .mood-label { font-size: 11px; color: #475569; }
+
+        /* شاشة تسجيل الدخول */
+        .login-wrapper {
+            max-width: 440px;
+            margin: 40px auto;
+        }
+
+        /* قالب الروشتة القابلة للطباعة */
+        #printablePrescription {
+            display: none;
+        }
+
+        @media print {
+            body * { visibility: hidden !important; }
+            #printablePrescription, #printablePrescription * { visibility: visible !important; }
+            #printablePrescription {
+                display: block !important;
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                padding: 40px;
+                background: white;
+                color: black;
+            }
+            .no-print { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- إشعارات Toast -->
+    <div id="toastContainer"></div>
+
+    <!-- شريط تنبيه انقطاع الإنترنت -->
+    <div id="offlineBanner">
+        ⚠️ أنت غير متصل بالإنترنت حالياً! التطبيق يعمل بنجاح والبيانات محفوظة على جهازك بدون انقطاع.
+    </div>
+
+    <!-- شريط التنقل العلوي -->
+    <nav class="navbar no-print">
+        <div class="navbar-brand">
+            <h1>🧠 عيادة الطب النفسي والدعم التخصصي</h1>
+            <span id="netStatusBadge" class="net-status net-online">🟢 متصل بالإنترنت</span>
+            <span id="cloudSyncBadge" class="net-status" style="background: rgba(139, 92, 246, 0.2); color: #c084fc;">☁️ جاري الربط بالسحابة...</span>
+        </div>
+        <div class="navbar-actions">
+            <span id="currentUserBadge" style="font-size: 13.5px; font-weight: 600;">يرجى تسجيل الدخول</span>
+            <button type="button" id="logoutBtn" class="btn btn-danger hidden" onclick="logout()">
+                خروج 🚪
+            </button>
+        </div>
+    </nav>
+
+    <div class="container">
+
+        <!-- ==========================================
+             1. شاشة تسجيل الدخول والاستقبال
+             ========================================== -->
+        <div id="visitorScreen" class="login-wrapper">
+            <div class="card" style="border-top: 4px solid var(--success); text-align: center;">
+                <h3 style="color: var(--success); margin-bottom: 8px;">📞 حجز المواعيد والاستفسارات</h3>
+                <p style="font-size: 13.5px; color: var(--slate);">تواصل معنا عبر الهاتف أو واتساب لتأكيد الحجز وتفعيل حساب المتابعة:</p>
+                <div style="font-size: 22px; font-weight: 800; color: #059669; direction: ltr; margin: 10px 0;">
+                    0100 000 0000
+                </div>
+                <span class="badge badge-paid">متاح يومياً 9 ص - 9 م</span>
+            </div>
+
+            <div class="card">
+                <h2 style="font-size: 19px; text-align: center; margin-bottom: 16px; color: var(--dark);">🔐 تسجيل الدخول للنظام</h2>
+                
+                <label for="loginUser">اسم المستخدم:</label>
+                <input type="text" id="loginUser" value="owner" placeholder="أدخل اسم المستخدم">
+                
+                <label for="loginPass">كلمة المرور:</label>
+                <input type="password" id="loginPass" value="123" placeholder="أدخل كلمة المرور">
+                
+                <button type="button" id="mainLoginBtn" class="btn btn-primary" style="width: 100%; padding: 12px; margin-top: 12px; font-size: 15px;" onclick="login()">
+                    تسجيل الدخول
+                </button>
+
+                <!-- أزرار الدخول السريع للاختبار الفوري -->
+                <div style="margin-top: 20px; padding-top: 15px; border-top: 1px dashed var(--border); text-align: center;">
+                    <span style="font-size: 12px; color: var(--slate); display: block; margin-bottom: 8px; font-weight: 600;">⚡ دخول تجريبي فوري بنقرة واحدة:</span>
+                    <div style="display: flex; gap: 6px; justify-content: center; flex-wrap: wrap;">
+                        <button type="button" class="btn btn-dark" onclick="quickLogin('owner','123')">👑 المالك</button>
+                        <button type="button" class="btn btn-purple" onclick="quickLogin('admin','123')">🩺 الدكتور</button>
+                        <button type="button" class="btn btn-success" onclick="quickLogin('sara','123')">👤 المريضة (سارة)</button>
+                        <button type="button" class="btn btn-primary" onclick="quickLogin('ahmed','123')">👤 المريض (أحمد)</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- ==========================================
+             2. شاشة الإدارة (المالك + الطبيب + المساعدين)
+             ========================================== -->
+        <div id="adminScreen" class="hidden">
+            
+            <!-- لوحة التحكم العلوية والإحصائيات السريعة -->
+            <div class="card" style="background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                    <div>
+                        <h2 style="margin: 0; font-size: 20px; color: var(--dark);">لوحة التحكم والعيادة</h2>
+                        <p id="adminRoleDesc" style="margin: 4px 0 0; color: var(--slate); font-size: 13px; font-weight: 600;"></p>
+                    </div>
+                    
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                        <button type="button" class="btn btn-success" onclick="exportDatabaseFile()">
+                            💾 حفظ نسخة احتياطية (JSON)
+                        </button>
+                        <label class="btn btn-primary" style="cursor: pointer; margin: 0;">
+                            📂 استرجاع نسخة
+                            <input type="file" accept=".json" style="display: none;" onchange="importDatabaseFile(event)">
+                        </label>
+
+                        <div id="selfPassChangeBox" class="hidden" style="display: flex; gap: 6px;">
+                            <input type="password" id="myNewPassInput" placeholder="كلمة مرور جديدة..." style="width: 140px; margin: 0;">
+                            <button type="button" class="btn btn-dark" onclick="changeMyOwnPassword()">تغيير باسوردي</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- شريط الإحصائيات (KPIs) -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-top: 18px; margin-bottom: 0;">
+                    <div class="stat-card" style="border-right-color: #ef4444; background: #fff5f5; cursor: pointer;" onclick="scrollToDailySchedule()">
+                        <div>
+                            <div class="stat-num" id="statTodaySessionsCount" style="color: #dc2626;">0</div>
+                            <div class="stat-label" style="color: #991b1b; font-weight: 700;">🔔 حجوزات اليوم الحالي</div>
+                        </div>
+                        <span style="font-size: 28px;">⚡</span>
+                    </div>
+                    <div class="stat-card">
+                        <div>
+                            <div class="stat-num" id="statPatientsCount">0</div>
+                            <div class="stat-label">إجمالي المرضى</div>
+                        </div>
+                        <span style="font-size: 26px;">👥</span>
+                    </div>
+                    <div class="stat-card" style="border-right-color: var(--success);">
+                        <div>
+                            <div class="stat-num" id="statPaidCount">0</div>
+                            <div class="stat-label">حجوزات مؤكدة</div>
+                        </div>
+                        <span style="font-size: 26px;">✅</span>
+                    </div>
+                    <div class="stat-card" style="border-right-color: var(--warning);">
+                        <div>
+                            <div class="stat-num" id="statUnpaidCount">0</div>
+                            <div class="stat-label">في انتظار الدفع</div>
+                        </div>
+                        <span style="font-size: 26px;">⏳</span>
+                    </div>
+                    <div class="stat-card" style="border-right-color: var(--purple);">
+                        <div>
+                            <div class="stat-num" id="statSessionsCount">0</div>
+                            <div class="stat-label">إجمالي كل الجلسات</div>
+                        </div>
+                        <span style="font-size: 26px;">📅</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==========================================
+                 جدول مواعيد وجلسات العيادة باليوم والبحث بالتاريخ
+                 ========================================== -->
+            <div id="dailyScheduleSection" class="card" style="border-right: 5px solid #2563eb; background: #ffffff;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border);">
+                    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                        <h3 style="margin: 0; font-size: 17px; color: var(--dark); display: flex; align-items: center; gap: 8px;">
+                            <span>📅</span> جدول مواعيد وجلسات العيادة
+                        </h3>
+                        <span id="selectedDateBadge" class="badge badge-role" style="font-size: 13px;"></span>
+                        <span id="todayAlertBadge" class="badge" style="background:#fee2e2; color:#b91c1c; font-size:12px; font-weight:bold; display:none;"></span>
+                    </div>
+
+                    <!-- أدوات اختيار التاريخ والتنقل -->
+                    <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                        <label style="margin: 0; font-size: 13px; font-weight: bold; color: var(--slate);">بحث بالتاريخ:</label>
+                        <input type="date" id="scheduleDateInput" style="width: 170px; margin: 0; padding: 7px 10px;" onchange="renderDailySchedule()">
+                        <button type="button" class="btn btn-primary" style="padding: 7px 12px;" onclick="setScheduleDateOffset(0)">📍 اليوم</button>
+                        <button type="button" class="btn btn-outline" style="padding: 7px 12px;" onclick="setScheduleDateOffset(1)">غداً ➡️</button>
+                        <button type="button" class="btn btn-outline" style="padding: 7px 12px;" onclick="setScheduleDateOffset(-1)">⬅️ أمس</button>
+                    </div>
+                </div>
+
+                <!-- نتائج مواعيد اليوم المختار -->
+                <div id="scheduleResultsContainer"></div>
+            </div>
+
+            <!-- ==========================================
+                 قسم سجل الحالات النفسية والشكاوى المسجلة من المرضى
+                 ========================================== -->
+            <div id="patientMoodsSection" class="card" style="border-right: 5px solid #8b5cf6; background: #ffffff;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border);">
+                    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                        <h3 style="margin: 0; font-size: 17px; color: var(--dark); display: flex; align-items: center; gap: 8px;">
+                            <span>🩺</span> سجل الشكاوى وتحديثات الحالة النفسية للمرضى
+                        </h3>
+                        <span id="complaintsCountBadge" class="badge" style="background: #f5f3ff; color: #7c3aed; font-size: 13px; font-weight: bold;">0 تسجيل</span>
+                        <span id="urgentAlertBadge" class="badge" style="background: #fee2e2; color: #b91c1c; font-size: 12px; font-weight: bold; display: none;">⚠️ حالات بحاجة لمتابعة عاجلة</span>
+                    </div>
+
+                    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                        <label style="margin: 0; font-size: 13px; font-weight: bold; color: var(--slate);">تصفية السجل:</label>
+                        <select id="moodFilterSelect" style="width: 220px; margin: 0; padding: 7px 10px;" onchange="renderPatientMoodsFeed()">
+                            <option value="all">كل الحالات والشكاوى المسجلة</option>
+                            <option value="urgent">🚨 حالات التوتر والقلق فقط (عاجل)</option>
+                            <option value="with_notes">📝 التي تحتوي على ملاحظة/شكوى فقط</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- قائمة الشكاوى والحالات النفسية المسجلة -->
+                <div id="patientMoodsFeedContainer"></div>
+            </div>
+
+            <!-- نموذج إضافة حساب + الشات المباشر -->
+            <div class="grid-2">
+                <div class="card" id="createAccountBox">
+                    <h3 style="margin-bottom: 12px; font-size: 16px;">➕ إضافة حساب جديد للنظام</h3>
+                    
+                    <label>الاسم بالكامل:</label>
+                    <input type="text" id="newAccName" placeholder="مثال: أحمد عبد الله">
+
+                    <div style="display: flex; gap: 10px;">
+                        <div style="flex: 1;">
+                            <label>اسم المستخدم للدخول:</label>
+                            <input type="text" id="newAccUser" placeholder="username">
+                        </div>
+                        <div style="flex: 1;">
+                            <label>كلمة المرور:</label>
+                            <input type="text" id="newAccPass" placeholder="password">
+                        </div>
+                    </div>
+
+                    <label>نوع الحساب والصلاحية:</label>
+                    <select id="newAccRole"></select>
+
+                    <label>تحديد أول موعد جلسة (للمرضى):</label>
+                    <input type="text" id="newAccAppointment" placeholder="مثال: الأحد 25 أكتوبر - الساعة 6 مساءً">
+
+                    <label>حالة سداد الجلسة:</label>
+                    <select id="newAccStatus">
+                        <option value="paid">عضو مؤكد - تم سداد الرسوم</option>
+                        <option value="unpaid">في انتظار تأكيد السداد</option>
+                    </select>
+
+                    <button type="button" class="btn btn-success" style="width: 100%; margin-top: 10px;" onclick="createAccount()">
+                        حفظ وإنشاء الحساب الآن
+                    </button>
+                </div>
+
+                <div class="card">
+                    <h3 style="margin-bottom: 8px; font-size: 16px;">💬 محادثة مباشرة مع المريض</h3>
+                    
+                    <label>اختر المريض:</label>
+                    <select id="adminMemberChatSelect" onchange="renderAdminChat()"></select>
+
+                    <div class="chat-container" style="height: 320px;">
+                        <div id="adminChatBox" class="chat-box"></div>
+                        <div style="display: flex; gap: 6px;">
+                            <input type="text" id="adminChatInput" placeholder="اكتب ردك الطبي هنا (واضغط Enter للإرسال)..." onkeypress="handleAdminChatKey(event)">
+                            <button type="button" class="btn btn-primary" onclick="sendAdminReply()">إرسال</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- بطاقة إدارة مواعيد الجلسات -->
+            <div id="sessionsManagementCard" class="card hidden" style="border: 2px solid var(--primary); background: #f0f7ff;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <h3 style="color: var(--primary); margin: 0; font-size: 16px;">
+                        📅 جدول جلسات المريض: <span id="selectedPatientForSessionName" style="color: #0f172a;"></span>
+                    </h3>
+                    <button type="button" class="btn btn-outline" onclick="closeSessionsPanel()">إغلاق ✖</button>
+                </div>
+                <div class="grid-2">
+                    <div style="background: white; padding: 16px; border-radius: 8px; border: 1px solid var(--border);">
+                        <h4 style="margin-bottom: 10px; font-size: 14px;">➕ حجز موعد جلسة جديدة</h4>
+                        <label>التاريخ:</label>
+                        <input type="date" id="sessionDateInput">
+                        <label>الوقت / الساعة:</label>
+                        <input type="time" id="sessionTimeInput">
+                        <label>نوع أو ملاحظة الجلسة:</label>
+                        <input type="text" id="sessionNoteInput" placeholder="مثال: جلسة علاج سلوكي معرفي (CBT)">
+                        <button type="button" class="btn btn-primary" style="width: 100%; margin-top: 8px;" onclick="addSessionToPatient()">
+                            حفظ وتثبيت الموعد
+                        </button>
+                    </div>
+                    <div>
+                        <h4 style="margin-bottom: 10px; font-size: 14px;">📋 المواعيد الحالية للمريض:</h4>
+                        <div id="doctorSessionsListContainer" style="max-height: 280px; overflow-y: auto;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- بطاقة الروشتة والخطة العلاجية -->
+            <div id="treatmentManagementCard" class="card hidden" style="border: 2px solid var(--purple); background: #faf5ff;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <h3 style="color: var(--purple); margin: 0; font-size: 16px;">
+                        💊 الخطة العلاجية والروشتة: <span id="selectedPatientForMedName" style="color: #0f172a;"></span>
+                    </h3>
+                    <div style="display: flex; gap: 6px;">
+                        <button type="button" class="btn btn-purple" onclick="printPrescriptionForSelected()">🖨️ طباعة روشتة رسمية</button>
+                        <button type="button" class="btn btn-outline" onclick="closeTreatmentPanel()">إغلاق ✖</button>
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div style="background: white; padding: 16px; border-radius: 8px; border: 1px solid var(--border);">
+                        <h4 id="medFormTitle" style="margin-bottom: 10px; font-size: 14px;">➕ إضافة علاج جديد للروشتة</h4>
+                        <input type="hidden" id="editingMedId" value="">
+                        
+                        <label>اسم الدواء والتركيز:</label>
+                        <input type="text" id="medNameInput" placeholder="مثال: Cipralex 10mg">
+                        
+                        <label>الجرعة ومواعيد التناول:</label>
+                        <input type="text" id="medDoseInput" placeholder="مثال: قرص واحد يومياً بعد الإفطار">
+                        
+                        <label>تعليمات خاصة وملاحظات:</label>
+                        <textarea id="medNotesInput" rows="2" placeholder="مثال: تجنب القيادة بعد الجرعة الأولى..."></textarea>
+                        
+                        <div style="display: flex; gap: 8px;">
+                            <button type="button" class="btn btn-purple" style="flex: 1;" onclick="saveMedication()">حفظ الدواء</button>
+                            <button type="button" id="cancelEditMedBtn" class="btn btn-outline hidden" onclick="resetMedForm()">إلغاء</button>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 style="margin-bottom: 10px; font-size: 14px;">📋 الأدوية المسجلة في ملف المريض:</h4>
+                        <div id="doctorMedListContainer" style="max-height: 280px; overflow-y: auto;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- بطاقة سجل الحالة النفسية وتاريخ الشكاوى للمريض المحدد -->
+            <div id="patientMoodHistoryCard" class="card hidden" style="border: 2px solid #8b5cf6; background: #faf5ff;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #e9d5ff;">
+                    <h3 style="color: #7c3aed; margin: 0; font-size: 16px;">
+                        🩺 سجل وتطور الحالة النفسية للمريض: <span id="selectedPatientForMoodName" style="color: #0f172a;"></span>
+                    </h3>
+                    <button type="button" class="btn btn-outline" onclick="closePatientMoodHistoryCard()">إغلاق ✖</button>
+                </div>
+                <div id="patientMoodHistoryListContainer" style="max-height: 360px; overflow-y: auto;"></div>
+            </div>
+
+            <!-- جدول الحسابات مع ميزة البحث والفلترة -->
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
+                    <h3 style="margin: 0; font-size: 16px;">👥 سجل المرضى والحسابات</h3>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <input type="text" id="tableSearchInput" placeholder="🔍 بحث بالاسم أو اليوزر..." style="width: 220px; margin: 0;" oninput="renderAccountsTable()">
+                        <select id="tableRoleFilter" style="width: 140px; margin: 0;" onchange="renderAccountsTable()">
+                            <option value="all">كل الصلاحيات</option>
+                            <option value="patient">المرضى فقط</option>
+                            <option value="admin">الأطباء</option>
+                            <option value="editor">المساعدين</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>الصورة</th>
+                                <th>الاسم</th>
+                                <th>اسم المستخدم</th>
+                                <th id="thPasswordCol">كلمة المرور</th>
+                                <th>الصلاحية</th>
+                                <th>الحالة النفسية والملاحظة الأخيرة</th>
+                                <th>الموعد القادم</th>
+                                <th>حالة الحجز</th>
+                                <th>إجراءات التحكم</th>
+                            </tr>
+                        </thead>
+                        <tbody id="accountsTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+
+        <!-- ==========================================
+             3. شاشة المريض الخاصة (Patient Dashboard)
+             ========================================== -->
+        <div id="patientScreen" class="hidden">
+            <div class="grid-2">
+                <div>
+                    <!-- بطاقة المريض والملف الشخصي -->
+                    <div class="card" style="text-align: center;">
+                        <img id="patientProfileImg" src="" class="avatar-lg" alt="صورة المريض">
+                        <h2 id="patientFullName" style="font-size: 18px; margin-bottom: 4px; color: var(--dark);"></h2>
+                        <span id="patientStatusBadge" class="badge"></span>
+
+                        <!-- متتبع المزاج اليومي للمريض -->
+                        <div style="text-align: right; margin-top: 18px; background: #fafbfc; border: 1px solid var(--border); border-radius: 8px; padding: 14px;">
+                            <h4 style="font-size: 13.5px; color: #334155; margin-bottom: 6px;">🩺 كيف تشعر اليوم؟ (سجل حالتك المزاجية)</h4>
+                            <div class="mood-grid">
+                                <button type="button" class="mood-btn" onclick="selectMood('ممتاز 😊', this)">
+                                    <span class="mood-icon">😊</span>
+                                    <span class="mood-label">ممتاز</span>
+                                </button>
+                                <button type="button" class="mood-btn" onclick="selectMood('مستقر 🙂', this)">
+                                    <span class="mood-icon">🙂</span>
+                                    <span class="mood-label">مستقر</span>
+                                </button>
+                                <button type="button" class="mood-btn" onclick="selectMood('قلق 😐', this)">
+                                    <span class="mood-icon">😐</span>
+                                    <span class="mood-label">قلق</span>
+                                </button>
+                                <button type="button" class="mood-btn" onclick="selectMood('حزين 😔', this)">
+                                    <span class="mood-icon">😔</span>
+                                    <span class="mood-label">حزين</span>
+                                </button>
+                                <button type="button" class="mood-btn" onclick="selectMood('متوتر 😫', this)">
+                                    <span class="mood-icon">😫</span>
+                                    <span class="mood-label">متوتر</span>
+                                </button>
+                            </div>
+                            <input type="text" id="patientMoodNote" placeholder="ملاحظة سريعة عن شعورك اليوم (اختياري)..." style="margin-bottom: 6px;">
+                            <button type="button" class="btn btn-outline" style="width: 100%;" onclick="submitPatientMood()">تسجيل الحالة في ملفي</button>
+                            <div id="patientLastMoodDisplay" style="font-size: 12px; color: var(--slate); margin-top: 6px;"></div>
+                        </div>
+
+                        <!-- مواعيد الجلسات المحددة للمريض -->
+                        <div style="text-align: right; margin-top: 15px; background: #eff6ff; padding: 14px; border-radius: 8px;">
+                            <h4 style="margin-bottom: 8px; color: var(--primary); font-size: 14px;">📅 جدول جلساتك القادمة:</h4>
+                            <div id="patientSessionsView"></div>
+                        </div>
+
+                        <!-- تعديل البيانات الشخصية -->
+                        <div style="text-align: right; margin-top: 15px; border-top: 1px solid var(--border); padding-top: 15px;">
+                            <label>🖼️ تغيير الصورة الشخصية:</label>
+                            <input type="file" id="photoUploadInput" accept="image/*" onchange="uploadPatientPhoto()">
+
+                            <label>🔑 تغيير كلمة المرور الخاصة بك:</label>
+                            <input type="password" id="newPatientPass" placeholder="كلمة المرور الجديدة">
+                            <button type="button" class="btn btn-dark" style="width: 100%; margin-top: 4px;" onclick="changePatientPassword()">حفظ كلمة المرور</button>
+                        </div>
+                    </div>
+
+                    <!-- بطاقة الروشتة للمريض -->
+                    <div class="card" style="border-right: 5px solid var(--purple);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <h3 style="color: var(--purple); font-size: 16px; margin: 0;">💊 الخطة الدوائية والروشتة</h3>
+                            <button type="button" class="btn btn-purple" onclick="printMyPrescription()">🖨️ طباعة الروشتة</button>
+                        </div>
+                        <div id="patientMedicationsView"></div>
+                    </div>
+                </div>
+
+                <!-- شات المريض مع الطبيب -->
+                <div class="card">
+                    <h3 style="margin-bottom: 10px; font-size: 16px;">💬 محادثتك السرية المباشرة مع الطبيب</h3>
+                    <div class="chat-container">
+                        <div id="patientPrivateChat" class="chat-box"></div>
+                        <div style="display: flex; gap: 6px;">
+                            <input type="text" id="patientPrivateInput" placeholder="اكتب استفسارك للطبيب (Enter للإرسال)..." onkeypress="handlePatientChatKey(event)">
+                            <button type="button" class="btn btn-success" onclick="sendPatientPrivateMsg()">إرسال</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ==========================================
+         4. قالب الروشتة الرسمية المخصص للطباعة فقط
+         ========================================== -->
+    <div id="printablePrescription">
+        <div style="border-bottom: 3px double #1e293b; padding-bottom: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h1 style="font-size: 24px; color: #1e293b; margin: 0;">عيادة الطب النفسي والدعم التخصصي</h1>
+                <p style="margin: 4px 0; font-size: 14px; color: #555;">استشارات الطب النفسي والعلاج السلوكي المعرفي</p>
+                <p style="margin: 2px 0; font-size: 13px; color: #777;">هاتف الحجز: 0100 000 0000</p>
+            </div>
+            <div style="text-align: left;">
+                <div style="font-size: 28px; font-weight: 900; color: #2563eb;">℞</div>
+                <div id="printDate" style="font-size: 12px; color: #555;"></div>
+            </div>
+        </div>
+
+        <div style="background: #f8fafc; padding: 12px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #e2e8f0; display: flex; justify-content: space-between;">
+            <div><b>اسم المريض:</b> <span id="printPatientName"></span></div>
+            <div><b>تاريخ الكشف:</b> <span id="printVisitDate"></span></div>
+        </div>
+
+        <h3 style="border-bottom: 1px solid #cbd5e1; padding-bottom: 6px; margin-bottom: 12px; font-size: 16px;">الخطة العلاجية والدوائية:</h3>
+        <div id="printMedicationsList"></div>
+
+        <div style="margin-top: 50px; display: flex; justify-content: space-between; align-items: flex-end;">
+            <div style="font-size: 12px; color: #64748b;">
+                * الالتزام التام بالجرعات والمواعيد المحددة دون زيادة أو توقف مفاجئ.
+            </div>
+            <div style="text-align: center;">
+                <p style="margin-bottom: 35px; font-weight: bold;">توقيع الطبيب المعالج</p>
+                <div style="border-top: 1.5px dashed #475569; width: 180px;"></div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ==========================================
+         5. مكتبات السحابة والأكواد البرمجية (Firebase & JavaScript)
+         ========================================== -->
+    <!-- مكتبات Firebase المباشرة لربط قاعدة البيانات أونلاين -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+    <script>
+        // إعدادات وبيانات مشروع Firebase الخاص بك
+        var firebaseConfig = {
+            apiKey: "AIzaSyD_iJVM_cvYWMob0gjwbXlbI_Se6W-PX-Y",
+            authDomain: "clinic-84a28.firebaseapp.com",
+            databaseURL: "https://clinic-84a28-default-rtdb.firebaseio.com",
+            projectId: "clinic-84a28",
+            storageBucket: "clinic-84a28.firebasestorage.app",
+            messagingSenderId: "657130869129",
+            appId: "1:657130869129:web:d839c4bd03acf8df775158",
+            measurementId: "G-BK1G1FVBFC"
+        };
+
+        var firebaseApp = null;
+        var rtdb = null;
+        var isCloudConnected = false;
+
+        try {
+            if (typeof firebase !== 'undefined') {
+                firebaseApp = firebase.initializeApp(firebaseConfig);
+                rtdb = firebase.database();
+                console.log("تمت تهيئة اتصال السحابة Firebase بنجاح!");
+            }
+        } catch (e) {
+            console.warn("تنبيه فيربيز:", e);
+        }
+
+        var defaultAvatar = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
+
+        // تنظيف النصوص لمنع ثغرات XSS
+        function escapeHtml(str) {
+            if (!str) return "";
+            return String(str)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // تحويل الأرقام العربية إلى إنجليزية لتفادي أخطاء كلمة السر
+        function cleanText(str) {
+            if (!str) return "";
+            var s = String(str).trim();
+            var arNums = ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩'];
+            for (var i = 0; i < 10; i++) {
+                s = s.split(arNums[i]).join(String(i));
+            }
+            return s;
+        }
+
+        function getFormattedDate() {
+            var now = new Date();
+            var hours = now.getHours();
+            var minutes = now.getMinutes() < 10 ? "0" + now.getMinutes() : now.getMinutes();
+            return now.getFullYear() + "/" + (now.getMonth() + 1) + "/" + now.getDate() + " - " + hours + ":" + minutes;
+        }
+
+        function showToast(message, type) {
+            type = type || "info";
+            var container = document.getElementById("toastContainer");
+            var toast = document.createElement("div");
+            toast.className = "toast toast-" + type;
+            toast.innerHTML = '<span>' + escapeHtml(message) + '</span><span style="cursor:pointer; opacity:0.8;" onclick="this.parentElement.remove()">✕</span>';
+            container.appendChild(toast);
+            setTimeout(function() {
+                toast.style.transition = "opacity 0.4s";
+                toast.style.opacity = "0";
+                setTimeout(function() { toast.remove(); }, 400);
+            }, 3500);
+        }
+
+        // دالة مساعدة لحساب التواريخ بصيغة YYYY-MM-DD
+        function getDateStringWithOffset(offset) {
+            var d = new Date();
+            d.setDate(d.getDate() + (offset || 0));
+            var m = '' + (d.getMonth() + 1);
+            var day = '' + d.getDate();
+            var y = d.getFullYear();
+            if (m.length < 2) m = '0' + m;
+            if (day.length < 2) day = '0' + day;
+            return y + '-' + m + '-' + day;
+        }
+
+        var todayMockDate = getDateStringWithOffset(0);
+        var tomorrowMockDate = getDateStringWithOffset(1);
+
+        // البيانات المبدئية للنظام
+        var defaultUsers = [
+            { id: 1, name: "المالك الأعلى للنظام", username: "owner", password: "123", role: "owner", status: "paid", appointment: "-", sessions: [], photo: defaultAvatar, medications: [], moods: [] },
+            { id: 2, name: "دكتور العيادة (الأدمن)", username: "admin", password: "123", role: "admin", status: "paid", appointment: "-", sessions: [], photo: defaultAvatar, medications: [], moods: [] },
+            { 
+                id: 3, 
+                name: "سارة محمود (مريضة)", 
+                username: "sara", 
+                password: "123", 
+                role: "patient", 
+                status: "paid", 
+                appointment: todayMockDate + " الساعة 18:00 (جلسة اليوم)",
+                sessions: [
+                    { id: 501, date: todayMockDate, time: "18:00", note: "جلسة متابعة وتقييم دوري (اليوم)" },
+                    { id: 502, date: tomorrowMockDate, time: "19:30", note: "جلسة دعم وعلاج سلوكي معرفي" }
+                ],
+                photo: defaultAvatar, 
+                medications: [{ id: 101, name: "سيبرالكس 10 مجم", dose: "قرص يومياً بعد الإفطار", notes: "الالتزام بالميعاد يومياً", addedDate: "2026/10/20 - 14:00" }],
+                moods: [
+                    { date: "2026/10/19 - 21:00", mood: "قلق 😐", note: "أواجه أرق وصعوبة في النوم قبل موعد الجلسة", timestamp: Date.now() - 86400000 },
+                    { date: todayMockDate + " - 14:30", mood: "متوتر 😫", note: "أشعر بنوبة قلق متزايدة منذ الصباح وصعوبة في التركيز وضيق في التنفس", timestamp: Date.now() - 3600000 }
+                ]
+            },
+            { 
+                id: 4, 
+                name: "أحمد خالد (مريض)", 
+                username: "ahmed", 
+                password: "123", 
+                role: "patient", 
+                status: "paid", 
+                appointment: todayMockDate + " الساعة 20:00 (جلسة استشارية)",
+                sessions: [
+                    { id: 503, date: todayMockDate, time: "20:00", note: "جلسة استشارية أولى وتقييم" }
+                ],
+                photo: defaultAvatar, 
+                medications: [],
+                moods: [
+                    { date: todayMockDate + " - 11:15", mood: "حزين 😔", note: "فقدان مستمر للشغف والدافع طوال هذا الأسبوع مع انعدام الطاقة", timestamp: Date.now() - 7200000 }
+                ]
+            },
+            { id: 5, name: "منى (مساعدة مواعيد)", username: "mona", password: "123", role: "editor", status: "paid", appointment: "-", sessions: [], photo: defaultAvatar, medications: [], moods: [] }
+        ];
+
+        var defaultChats = {
+            "sara": [
+                { sender: "الدكتور", text: "أهلاً بك يا سارة في العيادة، موعد جلستك اليوم الساعة 6 مساءً.", isDoc: true, time: "14:00" },
+                { sender: "سارة محمود", text: "شكراً دكتور، سأكون في الموعد تماماً. سجلت ملاحظتي عن نوبة القلق في ملفي.", isDoc: false, time: "14:35" }
+            ],
+            "ahmed": [
+                { sender: "أحمد خالد", text: "مساء الخير يا دكتور، سجلت ملاحظاتي في ملفي بخصوص نوبات الحزن.", isDoc: false, time: "11:20" },
+                { sender: "الدكتور", text: "أهلاً بك يا أحمد، اطلعت على شكواك وسنناقشها بالتفصيل في جلسة اليوم بإذن الله.", isDoc: true, time: "11:45" }
+            ]
+        };
+
+        var usersDB = defaultUsers;
+        var privateChats = defaultChats;
+
+        // استعادة البيانات من localStorage
+        try {
+            var savedU = localStorage.getItem("clinic_v8_users") || localStorage.getItem("clinic_v7_users") || localStorage.getItem("clinic_v6_users");
+            if (savedU) {
+                var parsedU = JSON.parse(savedU);
+                if (Array.isArray(parsedU) && parsedU.length > 0) usersDB = parsedU;
+            }
+            var savedC = localStorage.getItem("clinic_v8_chats") || localStorage.getItem("clinic_v7_chats") || localStorage.getItem("clinic_v6_chats");
+            if (savedC) {
+                var parsedC = JSON.parse(savedC);
+                if (parsedC && typeof parsedC === "object") privateChats = parsedC;
+            }
+        } catch (err) {}
+
+        var currentUser = null;
+        var selectedPatientIdForMed = null;
+        var selectedPatientIdForSession = null;
+        var currentSelectedMood = "";
+
+        function saveData() {
+            try {
+                localStorage.setItem("clinic_v8_users", JSON.stringify(usersDB));
+                localStorage.setItem("clinic_v8_chats", JSON.stringify(privateChats));
+                updateKPIStats();
+
+                // مزامنة فورية مع سحابة Firebase
+                if (rtdb) {
+                    rtdb.ref('clinic_data/users').set(usersDB);
+                    rtdb.ref('clinic_data/chats').set(privateChats);
+                    updateCloudBadge(true);
+                }
+            } catch (err) {
+                console.error("فشل حفظ البيانات:", err);
+            }
+        }
+
+        // ==========================================
+        // وظائف المزامنة السحابية اللحظية (Firebase Sync)
+        // ==========================================
+        function initFirebaseRealtimeSync() {
+            if (!rtdb) {
+                updateCloudBadge(false);
+                return;
+            }
+
+            // فحص الاتصال الحي مع سيرفرات جوجل
+            rtdb.ref('.info/connected').on('value', function(snap) {
+                if (snap.val() === true) {
+                    isCloudConnected = true;
+                    updateCloudBadge(true);
+                } else {
+                    isCloudConnected = false;
+                    updateCloudBadge(false);
+                }
+            });
+
+            // الاستماع التلقائي اللحظي لأي تعديل في المستخدمين والمواعيد والشكاوى
+            rtdb.ref('clinic_data/users').on('value', function(snapshot) {
+                var cloudUsers = snapshot.val();
+                if (cloudUsers && Array.isArray(cloudUsers) && cloudUsers.length > 0) {
+                    usersDB = cloudUsers;
+                    localStorage.setItem("clinic_v8_users", JSON.stringify(usersDB));
+                    
+                    if (currentUser) {
+                        var updatedMe = findUserById(currentUser.id);
+                        if (updatedMe) currentUser = updatedMe;
+                    }
+
+                    updateKPIStats();
+                    renderAccountsTable();
+                    renderDailySchedule();
+                    renderPatientMoodsFeed();
+                    if (currentUser && currentUser.role === "patient") {
+                        renderPatientSessions();
+                        renderPatientMedications();
+                        renderPatientLastMood();
+                    }
+                } else if (!cloudUsers) {
+                    // أول تشغيل لقاعدة البيانات الفارغة: رفع البيانات المبدئية
+                    rtdb.ref('clinic_data/users').set(usersDB);
+                }
+            });
+
+            // الاستماع التلقائي اللحظي لرسائل الشات المباشرة
+            rtdb.ref('clinic_data/chats').on('value', function(snapshot) {
+                var cloudChats = snapshot.val();
+                if (cloudChats && typeof cloudChats === 'object') {
+                    privateChats = cloudChats;
+                    localStorage.setItem("clinic_v8_chats", JSON.stringify(privateChats));
+                    
+                    renderAdminChat();
+                    if (currentUser && currentUser.role === "patient") {
+                        renderPatientPrivateChat();
+                    }
+                } else if (!cloudChats) {
+                    rtdb.ref('clinic_data/chats').set(privateChats);
+                }
+            });
+        }
+
+        function updateCloudBadge(connected) {
+            var badge = document.getElementById("cloudSyncBadge");
+            if (!badge) return;
+            if (connected) {
+                badge.className = "net-status net-online";
+                badge.style.background = "rgba(16, 185, 129, 0.2)";
+                badge.style.color = "#34d399";
+                badge.innerText = "☁️ متصل بالسحابة أونلاين";
+            } else {
+                badge.className = "net-status net-offline";
+                badge.style.background = "rgba(239, 68, 68, 0.2)";
+                badge.style.color = "#f87171";
+                badge.innerText = "💾 حفظ محلي (أوفلاين)";
+            }
+        }
+
+        // تحديث أرقام الإحصائيات مع احتساب جلسات اليوم
+        function updateKPIStats() {
+            var todayStr = getDateStringWithOffset(0);
+            var patients = usersDB.filter(function(u) { return u.role === "patient"; });
+            var paid = patients.filter(function(u) { return u.status === "paid"; }).length;
+            var unpaid = patients.filter(function(u) { return u.status !== "paid"; }).length;
+            
+            var totalSessions = 0;
+            var todaySessionsCount = 0;
+
+            patients.forEach(function(p) {
+                if (p.sessions && Array.isArray(p.sessions)) {
+                    totalSessions += p.sessions.length;
+                    p.sessions.forEach(function(s) {
+                        if (s.date === todayStr) {
+                            todaySessionsCount++;
+                        }
+                    });
+                }
+            });
+
+            var elToday = document.getElementById("statTodaySessionsCount");
+            var elP = document.getElementById("statPatientsCount");
+            var elPaid = document.getElementById("statPaidCount");
+            var elUnpaid = document.getElementById("statUnpaidCount");
+            var elS = document.getElementById("statSessionsCount");
+            var alertBadge = document.getElementById("todayAlertBadge");
+
+            if (elToday) elToday.innerText = todaySessionsCount;
+            if (elP) elP.innerText = patients.length;
+            if (elPaid) elPaid.innerText = paid;
+            if (elUnpaid) elUnpaid.innerText = unpaid;
+            if (elS) elS.innerText = totalSessions;
+
+            if (alertBadge) {
+                if (todaySessionsCount > 0) {
+                    alertBadge.innerText = "⚡ يوجد اليوم " + todaySessionsCount + " حجز";
+                    alertBadge.style.display = "inline-flex";
+                } else {
+                    alertBadge.style.display = "none";
+                }
+            }
+
+            return todaySessionsCount;
+        }
+
+        // تسجيل الدخول السريع
+        function quickLogin(u, p) {
+            document.getElementById("loginUser").value = u;
+            document.getElementById("loginPass").value = p;
+            login();
+        }
+
+        function login() {
+            var rawU = document.getElementById("loginUser").value;
+            var rawP = document.getElementById("loginPass").value;
+            var u = cleanText(rawU).toLowerCase();
+            var p = cleanText(rawP);
+
+            var found = null;
+            for (var i = 0; i < usersDB.length; i++) {
+                if (cleanText(usersDB[i].username).toLowerCase() === u && cleanText(usersDB[i].password) === p) {
+                    found = usersDB[i];
+                    break;
+                }
+            }
+
+            if (!found) {
+                showToast("اسم المستخدم أو كلمة المرور غير صحيحة!", "error");
+                return;
+            }
+
+            currentUser = found;
+            document.getElementById("visitorScreen").classList.add("hidden");
+            document.getElementById("logoutBtn").classList.remove("hidden");
+            document.getElementById("currentUserBadge").innerText = "مرحباً، " + currentUser.name;
+
+            showToast("تم تسجيل الدخول بنجاح كـ " + currentUser.name, "success");
+
+            if (currentUser.role === "patient") {
+                openPatientDashboard();
+            } else {
+                openAdminDashboard();
+            }
+        }
+
+        function logout() {
+            currentUser = null;
+            selectedPatientIdForMed = null;
+            selectedPatientIdForSession = null;
+            document.getElementById("adminScreen").classList.add("hidden");
+            document.getElementById("patientScreen").classList.add("hidden");
+            document.getElementById("treatmentManagementCard").classList.add("hidden");
+            document.getElementById("sessionsManagementCard").classList.add("hidden");
+            document.getElementById("logoutBtn").classList.add("hidden");
+            document.getElementById("visitorScreen").classList.remove("hidden");
+            document.getElementById("currentUserBadge").innerText = "يرجى تسجيل الدخول";
+            showToast("تم تسجيل الخروج بنجاح", "info");
+        }
+
+        // النسخ الاحتياطي واسترجاع الداتا بيز
+        function exportDatabaseFile() {
+            var fullDB = { users: usersDB, chats: privateChats, exportDate: getFormattedDate() };
+            var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(fullDB, null, 2));
+            var a = document.createElement('a');
+            a.setAttribute("href", dataStr);
+            a.setAttribute("download", "clinic_backup_" + Date.now() + ".json");
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            showToast("تم تحميل النسخة الاحتياطية بنجاح", "success");
+        }
+
+        function importDatabaseFile(event) {
+            var file = event.target.files[0];
+            if (!file) return;
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    var imported = JSON.parse(e.target.result);
+                    if (imported.users && imported.chats) {
+                        usersDB = imported.users;
+                        privateChats = imported.chats;
+                        saveData();
+                        renderAccountsTable();
+                        renderDailySchedule();
+                        renderPatientMoodsFeed();
+                        updateMemberChatDropdown();
+                        renderAdminChat();
+                        showToast("تم استرجاع قاعدة البيانات بنجاح!", "success");
+                    } else {
+                        showToast("ملف غير صالح!", "error");
+                    }
+                } catch (err) {
+                    showToast("خطأ في قراءة ملف JSON!", "error");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // شاشة الإدارة
+        function openAdminDashboard() {
+            document.getElementById("adminScreen").classList.remove("hidden");
+            var createBox = document.getElementById("createAccountBox");
+            var selfPassBox = document.getElementById("selfPassChangeBox");
+            var roleSelect = document.getElementById("newAccRole");
+            var thPassCol = document.getElementById("thPasswordCol");
+
+            if (currentUser.role === "owner") {
+                document.getElementById("adminRoleDesc").innerText = "👑 المالك الأعلى: تحكم كامل في كافة الحسابات، الصلاحيات، والجلسات.";
+                createBox.classList.remove("hidden");
+                selfPassBox.classList.remove("hidden");
+                thPassCol.classList.remove("hidden");
+                roleSelect.innerHTML = 
+                    '<option value="patient">مريض (حساب عضو)</option>' +
+                    '<option value="editor">مساعد عيادة (مواعيد وجلسات)</option>' +
+                    '<option value="viewer">مساعد عيادة (مشاهدة فقط)</option>' +
+                    '<option value="admin">طبيب معالج / أدمن</option>' +
+                    '<option value="owner">مالك أعلى للنظام</option>';
+            } else if (currentUser.role === "admin") {
+                document.getElementById("adminRoleDesc").innerText = "🩺 طبيب معالج: إدارة الروشتات، الجلسات، والمحادثة مع المرضى.";
+                createBox.classList.remove("hidden");
+                selfPassBox.classList.remove("hidden");
+                thPassCol.classList.remove("hidden");
+                roleSelect.innerHTML = 
+                    '<option value="patient">مريض (حساب عضو)</option>' +
+                    '<option value="editor">مساعد عيادة (مواعيد)</option>' +
+                    '<option value="viewer">مساعد عيادة (مشاهدة فقط)</option>';
+            } else if (currentUser.role === "editor") {
+                document.getElementById("adminRoleDesc").innerText = "مساعد عيادة: تنظيم مواعيد الجلسات فقط.";
+                createBox.classList.remove("hidden");
+                selfPassBox.classList.add("hidden");
+                thPassCol.classList.add("hidden");
+                roleSelect.innerHTML = '<option value="patient">مريض (حساب عضو)</option>';
+            } else {
+                document.getElementById("adminRoleDesc").innerText = "مساعد عيادة: استعراض المواعيد فقط.";
+                createBox.classList.add("hidden");
+                selfPassBox.classList.add("hidden");
+                thPassCol.classList.add("hidden");
+            }
+
+            var todayCount = updateKPIStats();
+            renderAccountsTable();
+            updateMemberChatDropdown();
+            renderAdminChat();
+
+            // ضبط تاريخ جدول المواعيد على اليوم واستعراضه تلقائياً
+            var dateInp = document.getElementById("scheduleDateInput");
+            if (dateInp) {
+                dateInp.value = getDateStringWithOffset(0);
+            }
+            renderDailySchedule();
+
+            // استعراض سجل شكاوى وتحديثات الحالة النفسية للمرضى
+            renderPatientMoodsFeed();
+
+            // تنبيه فوري للطبيب والمساعد بعدد حجوزات اليوم عند الدخول
+            if (todayCount > 0) {
+                showToast("🔔 تذكير: لديك اليوم (" + todayCount + ") جلسة محجوزة بالعيادة!", "info");
+            } else {
+                showToast("📅 مرحباً بك في لوحة تحكم العيادة!", "info");
+            }
+        }
+
+        // ==========================================
+        // وظائف جدول مواعيد العيادة والبحث بالتاريخ
+        // ==========================================
+        function scrollToDailySchedule() {
+            var el = document.getElementById("dailyScheduleSection");
+            if (el) el.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function setScheduleDateOffset(offset) {
+            var dateInp = document.getElementById("scheduleDateInput");
+            if (dateInp) {
+                dateInp.value = getDateStringWithOffset(offset);
+                renderDailySchedule();
+            }
+        }
+
+        function renderDailySchedule() {
+            var dateInp = document.getElementById("scheduleDateInput");
+            if (!dateInp) return;
+            var targetDate = dateInp.value || getDateStringWithOffset(0);
+            dateInp.value = targetDate;
+
+            var todayStr = getDateStringWithOffset(0);
+            var tomorrowStr = getDateStringWithOffset(1);
+            var yesterdayStr = getDateStringWithOffset(-1);
+
+            var badge = document.getElementById("selectedDateBadge");
+            if (badge) {
+                if (targetDate === todayStr) {
+                    badge.innerText = "📍 مواعيد اليوم (" + targetDate + ")";
+                    badge.className = "badge badge-paid";
+                } else if (targetDate === tomorrowStr) {
+                    badge.innerText = "➡️ مواعيد الغد (" + targetDate + ")";
+                    badge.className = "badge badge-role";
+                } else if (targetDate === yesterdayStr) {
+                    badge.innerText = "⬅️ مواعيد الأمس (" + targetDate + ")";
+                    badge.className = "badge";
+                } else {
+                    badge.innerText = "🗓️ مواعيد يوم (" + targetDate + ")";
+                    badge.className = "badge badge-role";
+                }
+            }
+
+            var container = document.getElementById("scheduleResultsContainer");
+            if (!container) return;
+
+            // جمع الجلسات المجدولة في هذا التاريخ لجميع المرضى
+            var list = [];
+            for (var i = 0; i < usersDB.length; i++) {
+                var u = usersDB[i];
+                if (u.role === "patient" && Array.isArray(u.sessions)) {
+                    for (var j = 0; j < u.sessions.length; j++) {
+                        var s = u.sessions[j];
+                        if (s.date === targetDate) {
+                            list.push({ patient: u, session: s });
+                        }
+                    }
+                }
+            }
+
+            // ترتيب زمني للجلسات
+            list.sort(function(a, b) {
+                var tA = a.session.time || "99:99";
+                var tB = b.session.time || "99:99";
+                return tA.localeCompare(tB);
+            });
+
+            if (list.length === 0) {
+                container.innerHTML = 
+                    '<div style="text-align:center; padding: 28px 15px; background: #f8fafc; border-radius: 8px; border: 1.5px dashed var(--border);">' +
+                        '<span style="font-size: 34px; display: block; margin-bottom: 6px;">☕</span>' +
+                        '<h4 style="margin: 0; color: #475569; font-size: 15px;">لا توجد أي جلسات أو حجوزات مسجلة في هذا اليوم (' + escapeHtml(targetDate) + ')</h4>' +
+                        '<p style="margin: 4px 0 0; color: #94a3b8; font-size: 12.5px;">يمكنك إضافة موعد لمريض جديد أو تحديد ميعاد من جدول الحسابات بالأسفل.</p>' +
+                    '</div>';
+                return;
+            }
+
+            var html = 
+                '<div style="margin-bottom: 8px; font-size: 13px; color: var(--slate); font-weight: 600;">' +
+                    'عدد الحجوزات المسجلة: <b style="color:var(--dark);">' + list.length + '</b> جلسة' +
+                '</div>' +
+                '<div class="table-responsive">' +
+                '<table>' +
+                    '<thead>' +
+                        '<tr>' +
+                            '<th>الوقت / الساعة</th>' +
+                            '<th>المريض</th>' +
+                            '<th>نوع وملاحظات الجلسة</th>' +
+                            '<th>حالة السداد</th>' +
+                            '<th>إجراءات سريعة</th>' +
+                        '</tr>' +
+                    '</thead>' +
+                    '<tbody>';
+
+            var isDocOrOwner = (currentUser && (currentUser.role === "owner" || currentUser.role === "admin"));
+
+            for (var k = 0; k < list.length; k++) {
+                var item = list[k];
+                var p = item.patient;
+                var sess = item.session;
+
+                var timeDisplay = sess.time 
+                    ? '<span style="font-weight: 800; font-size: 14px; color: #2563eb; background: #eff6ff; padding: 4px 10px; border-radius: 6px;">⏰ ' + escapeHtml(sess.time) + '</span>'
+                    : '<span style="color:#94a3b8; font-size:12px;">غير محدد</span>';
+
+                var statusDisplay = p.status === "paid"
+                    ? '<span class="badge badge-paid">✅ مسدد</span>'
+                    : '<span class="badge badge-unpaid">⏳ في الانتظار</span>';
+
+                var patientMoodTag = "";
+                if (p.moods && p.moods.length > 0) {
+                    var lm = p.moods[p.moods.length - 1];
+                    var isU = (lm.mood && (lm.mood.includes("متوتر") || lm.mood.includes("حزين") || lm.mood.includes("قلق")));
+                    patientMoodTag = '<div style="margin-top:4px;">' +
+                        '<span class="badge" style="background:#f5f3ff; color:#7c3aed; font-size:11px; padding:2px 7px;">' + escapeHtml(lm.mood) + '</span>' +
+                        (isU ? ' <span style="color:#dc2626; font-size:10.5px; font-weight:bold;">⚠️ بحاجة لمتابعة</span>' : '') +
+                        (lm.note ? '<div style="font-size:11px; color:#64748b; margin-top:2px; font-style:italic;" title="' + escapeHtml(lm.note) + '">📝 "' + escapeHtml(lm.note) + '"</div>' : '') +
+                    '</div>';
+                }
+
+                var actions = '<div style="display: flex; gap: 4px; flex-wrap: wrap;">';
+                
+                // زر محادثة المريض
+                actions += '<button type="button" class="btn btn-outline" style="padding: 5px 9px; font-size: 12px;" onclick="openDirectPatientChat(\'' + escapeHtml(p.username) + '\')">💬 محادثة</button>';
+                
+                // زر سجل المزاج والشكاوى
+                actions += '<button type="button" class="btn btn-outline" style="padding: 5px 9px; font-size: 12px;" onclick="openPatientMoodHistoryModal(' + p.id + ')">🩺 سجل المزاج</button>';
+
+                // زر الروشتة للطبيب أو المالك
+                if (isDocOrOwner) {
+                    actions += '<button type="button" class="btn btn-purple" style="padding: 5px 9px; font-size: 12px;" onclick="openTreatmentPanel(' + p.id + ')">💊 الروشتة</button>';
+                }
+
+                // زر تبديل حالة الدفع
+                actions += '<button type="button" class="btn btn-warning" style="padding: 5px 9px; font-size: 12px;" onclick="togglePayStatus(' + p.id + ')">💳 الدفع</button>';
+
+                // زر حذف الجلسة
+                actions += '<button type="button" class="btn btn-danger" style="padding: 5px 9px; font-size: 12px;" onclick="deleteSpecificSession(' + p.id + ', ' + sess.id + ')">🗑️</button>';
+
+                actions += '</div>';
+
+                html += 
+                    '<tr>' +
+                        '<td>' + timeDisplay + '</td>' +
+                        '<td>' +
+                            '<div style="display:flex; align-items:center; gap:8px;">' +
+                                '<img src="' + escapeHtml(p.photo || defaultAvatar) + '" class="avatar" style="width:34px; height:34px;">' +
+                                '<div>' +
+                                    '<b style="color:var(--dark); display:block;">' + escapeHtml(p.name) + '</b>' +
+                                    '<span style="font-size:11px; color:#64748b;">@' + escapeHtml(p.username) + '</span>' +
+                                    patientMoodTag +
+                                '</div>' +
+                            '</div>' +
+                        '</td>' +
+                        '<td>' +
+                            '<span style="font-weight:600; color:#334155;">' + escapeHtml(sess.note || "جلسة متابعة") + '</span>' +
+                        '</td>' +
+                        '<td>' + statusDisplay + '</td>' +
+                        '<td>' + actions + '</td>' +
+                    '</tr>';
+            }
+
+            html += '</tbody></table></div>';
+            container.innerHTML = html;
+        }
+
+        function openDirectPatientChat(username) {
+            var select = document.getElementById("adminMemberChatSelect");
+            if (select) {
+                select.value = username;
+                renderAdminChat();
+                var chatBox = document.getElementById("adminChatBox");
+                if (chatBox) chatBox.scrollIntoView({ behavior: 'smooth' });
+                showToast("تم فتح محادثة المريض @" + username, "info");
+            }
+        }
+
+        function deleteSpecificSession(patientId, sessionId) {
+            if (!confirm("هل أنت متأكد من رغبتك في إلغاء وحذف هذه الجلسة؟")) return;
+            var patient = findUserById(patientId);
+            if (!patient || !patient.sessions) return;
+            patient.sessions = patient.sessions.filter(function(s) { return s.id !== sessionId; });
+            if (patient.sessions.length > 0) {
+                var last = patient.sessions[patient.sessions.length - 1];
+                patient.appointment = last.date + " الساعة " + last.time + " (" + last.note + ")";
+            } else {
+                patient.appointment = "لم يحدد بعد";
+            }
+            saveData();
+            renderDailySchedule();
+            renderDoctorSessionsList();
+            renderAccountsTable();
+            showToast("تم إلغاء وحذف موعد الجلسة بنجاح", "info");
+        }
+
+        // ==========================================
+        // وظائف سجل الشكاوى والحالات النفسية للمرضى
+        // ==========================================
+        function renderPatientMoodsFeed() {
+            var container = document.getElementById("patientMoodsFeedContainer");
+            if (!container) return;
+
+            var filter = document.getElementById("moodFilterSelect") ? document.getElementById("moodFilterSelect").value : "all";
+
+            var allLogs = [];
+            var urgentCount = 0;
+
+            for (var i = 0; i < usersDB.length; i++) {
+                var u = usersDB[i];
+                if (u.role === "patient" && Array.isArray(u.moods)) {
+                    for (var j = 0; j < u.moods.length; j++) {
+                        var m = u.moods[j];
+                        var isUrgent = (m.mood && (m.mood.includes("متوتر") || m.mood.includes("حزين") || m.mood.includes("قلق")));
+                        if (isUrgent) urgentCount++;
+
+                        if (filter === "urgent" && !isUrgent) continue;
+                        if (filter === "with_notes" && (!m.note || !m.note.trim())) continue;
+
+                        allLogs.push({
+                            patient: u,
+                            mood: m.mood,
+                            note: m.note,
+                            date: m.date,
+                            isUrgent: isUrgent,
+                            timestamp: m.timestamp || 0
+                        });
+                    }
+                }
+            }
+
+            var countBadge = document.getElementById("complaintsCountBadge");
+            if (countBadge) countBadge.innerText = allLogs.length + " تسجيل / شكوى";
+
+            var urgentBadge = document.getElementById("urgentAlertBadge");
+            if (urgentBadge) {
+                if (urgentCount > 0) {
+                    urgentBadge.innerText = "🚨 " + urgentCount + " حالة قلق وتوتر بحاجة لمتابعة";
+                    urgentBadge.style.display = "inline-flex";
+                } else {
+                    urgentBadge.style.display = "none";
+                }
+            }
+
+            if (allLogs.length === 0) {
+                container.innerHTML = 
+                    '<div style="text-align:center; padding: 25px 15px; background: #faf5ff; border-radius: 8px; border: 1.5px dashed #d8b4fe;">' +
+                        '<span style="font-size: 32px; display: block; margin-bottom: 6px;">🕊️</span>' +
+                        '<h4 style="margin: 0; color: #6b21a8; font-size: 14.5px;">لا توجد شكاوى أو حالات نفسية مسجلة تطابق التصفية المحددة</h4>' +
+                        '<p style="margin: 4px 0 0; color: #9333ea; font-size: 12px;">أي حالة يسجلها المريض في حسابه ستظهر هنا تلقائياً مع ملاحظاته وشكواه في الوقت الفعلي.</p>' +
+                    '</div>';
+                return;
+            }
+
+            // ترتيب السجل: الأحدث أولاً
+            allLogs.reverse();
+
+            var isDocOrOwner = (currentUser && (currentUser.role === "owner" || currentUser.role === "admin"));
+            var html = '<div style="display: flex; flex-direction: column; gap: 10px;">';
+
+            for (var k = 0; k < allLogs.length; k++) {
+                var item = allLogs[k];
+                var p = item.patient;
+
+                var urgentTag = item.isUrgent 
+                    ? '<span class="badge" style="background:#fee2e2; color:#b91c1c; font-size:11px; margin-right:6px;">🚨 بحاجة لمتابعة عاجلة</span>'
+                    : '';
+
+                var noteHtml = item.note 
+                    ? '<div style="background:#f8fafc; border-right:3px solid #8b5cf6; padding:10px 14px; border-radius:6px; margin: 8px 0; font-size:13px; color:#334155; line-height:1.6;">' +
+                        '<b>💬 شكوى / ملاحظة المريض:</b> ' + escapeHtml(item.note) +
+                      '</div>'
+                    : '<div style="font-size:12px; color:#94a3b8; margin: 5px 0;">(لم يكتب المريض ملاحظات نصية مع هذا التسجيل)</div>';
+
+                var actions = '<div style="display: flex; gap: 6px; flex-wrap: wrap;">';
+                actions += '<button type="button" class="btn btn-primary" style="padding: 5px 10px; font-size: 12px;" onclick="openDirectPatientChat(\'' + escapeHtml(p.username) + '\')">💬 محادثة فورية</button>';
+                if (isDocOrOwner) {
+                    actions += '<button type="button" class="btn btn-purple" style="padding: 5px 10px; font-size: 12px;" onclick="openTreatmentPanel(' + p.id + ')">💊 مراجعة الروشتة</button>';
+                }
+                actions += '<button type="button" class="btn btn-outline" style="padding: 5px 10px; font-size: 12px;" onclick="openPatientMoodHistoryModal(' + p.id + ')">📜 كل سجلاته</button>';
+                actions += '</div>';
+
+                html += 
+                    '<div style="background: white; border: 1px solid var(--border); border-radius: 8px; padding: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">' +
+                        '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">' +
+                            '<div style="display:flex; align-items:center; gap:10px;">' +
+                                '<img src="' + escapeHtml(p.photo || defaultAvatar) + '" class="avatar" style="width:40px; height:40px;">' +
+                                '<div>' +
+                                    '<b style="font-size:14px; color:var(--dark);">' + escapeHtml(p.name) + '</b> ' +
+                                    '<span style="font-size:11px; color:#64748b;">(@' + escapeHtml(p.username) + ')</span>' +
+                                    '<div style="margin-top:3px;">' +
+                                        '<span class="badge" style="background:#f5f3ff; color:#7c3aed; font-size:12px; font-weight:bold;">' + escapeHtml(item.mood) + '</span> ' +
+                                        urgentTag +
+                                    '</div>' +
+                                '</div>' +
+                            '</div>' +
+                            '<div style="text-align:left;">' +
+                                '<span class="date-stamp" style="font-size:11.5px;">🕒 ' + escapeHtml(item.date) + '</span>' +
+                            '</div>' +
+                        '</div>' +
+                        noteHtml +
+                        '<div style="display:flex; justify-content:flex-end; margin-top:6px;">' +
+                            actions +
+                        '</div>' +
+                    '</div>';
+            }
+
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        function openPatientMoodHistoryModal(patientId) {
+            var patient = findUserById(patientId);
+            if (!patient) return;
+            document.getElementById("selectedPatientForMoodName").innerText = patient.name;
+            var container = document.getElementById("patientMoodHistoryListContainer");
+            container.innerHTML = "";
+
+            var moods = patient.moods || [];
+            if (moods.length === 0) {
+                container.innerHTML = '<p style="color:#94a3b8; font-size:13px; text-align:center; padding:20px;">لا توجد أي تسجيلات سابقة للحالة النفسية لهذا المريض.</p>';
+            } else {
+                var html = '<div style="display:flex; flex-direction:column; gap:8px;">';
+                for (var i = moods.length - 1; i >= 0; i--) {
+                    var m = moods[i];
+                    var isUrgent = (m.mood && (m.mood.includes("متوتر") || m.mood.includes("حزين") || m.mood.includes("قلق")));
+                    var urgentBadge = isUrgent ? '<span class="badge" style="background:#fee2e2; color:#dc2626; font-size:10.5px; margin-right:5px;">⚠️ قلق / توتر</span>' : '';
+                    html += '<div style="background:white; border:1px solid #e9d5ff; border-radius:6px; padding:12px 14px;">' +
+                        '<div style="display:flex; justify-content:space-between; align-items:center;">' +
+                            '<div>' +
+                                '<span class="badge" style="background:#f5f3ff; color:#7c3aed; font-size:12.5px; font-weight:bold;">' + escapeHtml(m.mood) + '</span>' +
+                                urgentBadge +
+                            '</div>' +
+                            '<span style="font-size:11.5px; color:#64748b;">🕒 ' + escapeHtml(m.date) + '</span>' +
+                        '</div>' +
+                        (m.note ? '<div style="margin-top:8px; font-size:13px; color:#334155; background:#faf5ff; padding:8px 12px; border-radius:6px; border-right:3px solid #8b5cf6;"><b>نص الشكوى والملاحظة:</b> ' + escapeHtml(m.note) + '</div>' : '') +
+                    '</div>';
+                }
+                html += '</div>';
+                container.innerHTML = html;
+            }
+
+            document.getElementById("patientMoodHistoryCard").classList.remove("hidden");
+            document.getElementById("treatmentManagementCard").classList.add("hidden");
+            document.getElementById("sessionsManagementCard").classList.add("hidden");
+            document.getElementById("patientMoodHistoryCard").scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function closePatientMoodHistoryCard() {
+            document.getElementById("patientMoodHistoryCard").classList.add("hidden");
+        }
+
+        function findUserById(id) {
+            for (var i = 0; i < usersDB.length; i++) {
+                if (usersDB[i].id == id) return usersDB[i];
+            }
+            return null;
+        }
+
+        function changeMyOwnPassword() {
+            if (currentUser.role !== "owner" && currentUser.role !== "admin") return;
+            var newP = cleanText(document.getElementById("myNewPassInput").value);
+            if (!newP) return showToast("اكتب كلمة المرور الجديدة أولاً!", "error");
+            currentUser.password = newP;
+            saveData();
+            renderAccountsTable();
+            document.getElementById("myNewPassInput").value = "";
+            showToast("تم تغيير كلمة مرورك بنجاح!", "success");
+        }
+
+        function changeAnyUserPassword(userId) {
+            var target = findUserById(userId);
+            if (!target) return;
+            if (target.role === "owner" && currentUser.role !== "owner") {
+                return showToast("المالك الأعلى فقط يمكنه تعديل هذا الحساب!", "error");
+            }
+            var newPass = prompt("أدخل كلمة المرور الجديدة لحساب (" + target.name + "):", target.password);
+            if (newPass !== null && cleanText(newPass) !== "") {
+                target.password = cleanText(newPass);
+                saveData();
+                renderAccountsTable();
+                showToast("تم تحديث كلمة المرور للحساب بنجاح", "success");
+            }
+        }
+
+        function createAccount() {
+            var name = document.getElementById("newAccName").value.trim();
+            var user = cleanText(document.getElementById("newAccUser").value);
+            var pass = cleanText(document.getElementById("newAccPass").value);
+            var role = document.getElementById("newAccRole").value;
+            var appointment = document.getElementById("newAccAppointment").value.trim() || "لم يحدد بعد";
+            var status = document.getElementById("newAccStatus").value;
+
+            if (!name || !user || !pass) {
+                return showToast("يرجى ملء كافة الخانات المطلوبة!", "error");
+            }
+
+            for (var i = 0; i < usersDB.length; i++) {
+                if (usersDB[i].username.toLowerCase() === user.toLowerCase()) {
+                    return showToast("اسم المستخدم هذا مستخدم بالفعل!", "error");
+                }
+            }
+
+            var initialSessions = [];
+            if (role === "patient" && appointment !== "لم يحدد بعد") {
+                initialSessions.push({ id: Date.now(), date: appointment, time: "", note: "موعد مبدئي محجوز" });
+            }
+
+            usersDB.push({
+                id: Date.now(),
+                name: name,
+                username: user,
+                password: pass,
+                role: role,
+                status: status,
+                appointment: role === "patient" ? appointment : "-",
+                sessions: initialSessions,
+                photo: defaultAvatar,
+                medications: [],
+                moods: []
+            });
+
+            if (role === "patient" && !privateChats[user]) {
+                privateChats[user] = [{ sender: "الدكتور", text: "أهلاً بك في العيادة النفسية. يمكنك مراسلتي هنا في أي وقت.", isDoc: true, time: getFormattedDate().split(" - ")[1] || "" }];
+            }
+
+            saveData();
+            renderAccountsTable();
+            renderDailySchedule();
+            updateMemberChatDropdown();
+
+            document.getElementById("newAccName").value = "";
+            document.getElementById("newAccUser").value = "";
+            document.getElementById("newAccPass").value = "";
+            document.getElementById("newAccAppointment").value = "";
+            showToast("تم إنشاء الحساب بنجاح!", "success");
+        }
+
+        function renderAccountsTable() {
+            var tbody = document.getElementById("accountsTableBody");
+            tbody.innerHTML = "";
+            var isSuperOrDoc = (currentUser.role === "owner" || currentUser.role === "admin");
+
+            var searchFilter = (document.getElementById("tableSearchInput") ? document.getElementById("tableSearchInput").value.trim().toLowerCase() : "");
+            var roleFilter = (document.getElementById("tableRoleFilter") ? document.getElementById("tableRoleFilter").value : "all");
+
+            for (var i = 0; i < usersDB.length; i++) {
+                var u = usersDB[i];
+
+                if ((currentUser.role === "editor" || currentUser.role === "viewer") && u.role !== "patient") continue;
+                if (roleFilter !== "all" && u.role !== roleFilter) continue;
+                if (searchFilter && !u.name.toLowerCase().includes(searchFilter) && !u.username.toLowerCase().includes(searchFilter)) continue;
+
+                var roleLabel = u.role === "owner" ? "👑 المالك الأعلى" :
+                                u.role === "admin" ? "🩺 دكتور (أدمن)" :
+                                u.role === "editor" ? "مساعد (مواعيد)" :
+                                u.role === "viewer" ? "مساعد (مشاهدة)" : "مريض";
+
+                var statusBadge = u.status === "paid" 
+                    ? '<span class="badge badge-paid">✅ مسدد</span>' 
+                    : '<span class="badge badge-unpaid">⏳ في الانتظار</span>';
+
+                var moodCell = "<td>-</td>";
+                if (u.role === "patient") {
+                    if (u.moods && u.moods.length > 0) {
+                        var lm = u.moods[u.moods.length - 1];
+                        var isUrgent = (lm.mood && (lm.mood.includes("متوتر") || lm.mood.includes("حزين") || lm.mood.includes("قلق")));
+                        var urgentBadge = isUrgent ? '<span class="badge" style="background:#fee2e2; color:#dc2626; font-size:10px; padding:2px 6px; display:inline-block; margin-top:2px;">⚠️ تنبيه: بحاجة لمتابعة</span>' : '';
+                        var noteSnippet = lm.note ? '<div style="font-size:11.5px; color:#475569; margin-top:3px; max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="' + escapeHtml(lm.note) + '">💬 "' + escapeHtml(lm.note) + '"</div>' : '';
+                        
+                        moodCell = '<td>' +
+                            '<span class="badge" style="background:#f5f3ff; color:#7c3aed; border:1px solid #ddd6fe; font-size:11.5px;">' + escapeHtml(lm.mood) + '</span>' +
+                            (urgentBadge ? '<br>' + urgentBadge : '') +
+                            noteSnippet +
+                            '<div style="font-size:10px; color:#94a3b8; margin-top:2px;">🕒 ' + escapeHtml(lm.date) + '</div>' +
+                        '</td>';
+                    } else {
+                        moodCell = '<td><span style="color:#94a3b8; font-size:12px;">لم يسجل بعد</span></td>';
+                    }
+                }
+
+                var actionsHTML = "";
+                if (currentUser.role === "owner" || currentUser.role === "admin" || currentUser.role === "editor") {
+                    if (u.role === "patient") {
+                        var sCount = (u.sessions || []).length;
+                        var mCount = (u.moods || []).length;
+                        actionsHTML += '<button type="button" class="btn btn-primary" onclick="openSessionsPanel(' + u.id + ')">📅 المواعيد (' + sCount + ')</button> ';
+                        actionsHTML += '<button type="button" class="btn btn-outline" onclick="openPatientMoodHistoryModal(' + u.id + ')">🩺 سجل المزاج (' + mCount + ')</button> ';
+                        actionsHTML += '<button type="button" class="btn btn-warning" onclick="togglePayStatus(' + u.id + ')">💳 الدفع</button> ';
+                    }
+                }
+                if (isSuperOrDoc && u.role === "patient") {
+                    var medCount = (u.medications || []).length;
+                    actionsHTML += '<button type="button" class="btn btn-purple" onclick="openTreatmentPanel(' + u.id + ')">💊 الروشتة (' + medCount + ')</button> ';
+                }
+                if (isSuperOrDoc && !(u.role === "owner" && currentUser.role !== "owner")) {
+                    actionsHTML += '<button type="button" class="btn btn-dark" onclick="changeAnyUserPassword(' + u.id + ')">🔑 باسوورد</button> ';
+                }
+                if (isSuperOrDoc && u.id !== currentUser.id && !(u.role === "owner" && currentUser.role !== "owner")) {
+                    actionsHTML += '<button type="button" class="btn btn-danger" onclick="deleteAccount(' + u.id + ')">🗑️</button>';
+                }
+
+                var passCell = isSuperOrDoc ? '<td><code>' + escapeHtml(u.password) + '</code></td>' : '';
+
+                tbody.innerHTML += '<tr>' +
+                    '<td><img src="' + escapeHtml(u.photo) + '" class="avatar"></td>' +
+                    '<td><b>' + escapeHtml(u.name) + '</b></td>' +
+                    '<td><code>' + escapeHtml(u.username) + '</code></td>' +
+                    passCell +
+                    '<td><span class="badge badge-role">' + roleLabel + '</span></td>' +
+                    moodCell +
+                    '<td>' + (u.role === "patient" ? escapeHtml(u.appointment || "لم يحدد") : "-") + '</td>' +
+                    '<td>' + (u.role === "patient" ? statusBadge : "-") + '</td>' +
+                    '<td>' + (actionsHTML || "مشاهدة فقط") + '</td>' +
+                '</tr>';
+            }
+        }
+
+        function togglePayStatus(id) {
+            var target = findUserById(id);
+            if (target) {
+                target.status = target.status === "paid" ? "unpaid" : "paid";
+                saveData();
+                renderAccountsTable();
+                renderDailySchedule();
+                showToast("تم تحديث حالة السداد للحساب", "info");
+            }
+        }
+
+        function deleteAccount(id) {
+            if (confirm("هل أنت متأكد من رغبتك في حذف هذا الحساب نهائياً؟")) {
+                usersDB = usersDB.filter(function(u) { return u.id !== id; });
+                saveData();
+                renderAccountsTable();
+                renderDailySchedule();
+                updateMemberChatDropdown();
+                showToast("تم حذف الحساب بنجاح", "info");
+            }
+        }
+
+        // مواعيد الجلسات
+        function openSessionsPanel(patientId) {
+            selectedPatientIdForSession = patientId;
+            var patient = findUserById(patientId);
+            if (!patient) return;
+            document.getElementById("selectedPatientForSessionName").innerText = patient.name;
+            document.getElementById("sessionsManagementCard").classList.remove("hidden");
+            document.getElementById("treatmentManagementCard").classList.add("hidden");
+            renderDoctorSessionsList();
+        }
+
+        function closeSessionsPanel() {
+            selectedPatientIdForSession = null;
+            document.getElementById("sessionsManagementCard").classList.add("hidden");
+        }
+
+        function addSessionToPatient() {
+            var patient = findUserById(selectedPatientIdForSession);
+            if (!patient) return;
+            var dateVal = document.getElementById("sessionDateInput").value;
+            var timeVal = document.getElementById("sessionTimeInput").value;
+            var noteVal = document.getElementById("sessionNoteInput").value.trim() || "جلسة علاجية ومتابعة";
+
+            if (!dateVal || !timeVal) {
+                return showToast("يرجى اختيار تاريخ ووقت الجلسة بدقة!", "error");
+            }
+
+            if (!patient.sessions) patient.sessions = [];
+            patient.sessions.push({ id: Date.now(), date: dateVal, time: timeVal, note: noteVal });
+            patient.appointment = dateVal + " الساعة " + timeVal + " (" + noteVal + ")";
+
+            saveData();
+            document.getElementById("sessionDateInput").value = "";
+            document.getElementById("sessionTimeInput").value = "";
+            document.getElementById("sessionNoteInput").value = "";
+            renderDoctorSessionsList();
+            renderAccountsTable();
+            renderDailySchedule();
+            showToast("تمت إضافة موعد الجلسة للمريض بنجاح", "success");
+        }
+
+        function renderDoctorSessionsList() {
+            var patient = findUserById(selectedPatientIdForSession);
+            var container = document.getElementById("doctorSessionsListContainer");
+            container.innerHTML = "";
+            if (!patient || !patient.sessions || patient.sessions.length === 0) {
+                container.innerHTML = '<p style="color:#94a3b8; font-size:13px;">لا توجد مواعيد جلسات مضافة لهذا المريض.</p>';
+                return;
+            }
+            for (var i = 0; i < patient.sessions.length; i++) {
+                var s = patient.sessions[i];
+                container.innerHTML += '<div class="session-item">' +
+                    '<div class="med-info">' +
+                        '<h4 style="margin:0; font-size:14px; color:#1e293b;">📅 ' + escapeHtml(s.date) + (s.time ? ' - الساعة ' + escapeHtml(s.time) : '') + '</h4>' +
+                        '<p style="margin:2px 0 0; font-size:12.5px; color:#64748b;">' + escapeHtml(s.note) + '</p>' +
+                    '</div>' +
+                    '<button type="button" class="btn btn-danger" onclick="deleteSession(' + s.id + ')">حذف</button>' +
+                '</div>';
+            }
+        }
+
+        function deleteSession(sessionId) {
+            var patient = findUserById(selectedPatientIdForSession);
+            if (!patient) return;
+            patient.sessions = patient.sessions.filter(function(s) { return s.id !== sessionId; });
+            if (patient.sessions.length > 0) {
+                var last = patient.sessions[patient.sessions.length - 1];
+                patient.appointment = last.date + " الساعة " + last.time + " (" + last.note + ")";
+            } else {
+                patient.appointment = "لم يحدد بعد";
+            }
+            saveData();
+            renderDoctorSessionsList();
+            renderAccountsTable();
+            renderDailySchedule();
+            showToast("تم حذف موعد الجلسة", "info");
+        }
+
+        // إدارة الروشتات والأدوية
+        function openTreatmentPanel(patientId) {
+            if (currentUser.role !== "owner" && currentUser.role !== "admin") return;
+            selectedPatientIdForMed = patientId;
+            var patient = findUserById(patientId);
+            if (!patient) return;
+            document.getElementById("selectedPatientForMedName").innerText = patient.name;
+            document.getElementById("treatmentManagementCard").classList.remove("hidden");
+            document.getElementById("sessionsManagementCard").classList.add("hidden");
+            resetMedForm();
+            renderDoctorMedList();
+        }
+
+        function closeTreatmentPanel() {
+            selectedPatientIdForMed = null;
+            document.getElementById("treatmentManagementCard").classList.add("hidden");
+        }
+
+        function resetMedForm() {
+            document.getElementById("editingMedId").value = "";
+            document.getElementById("medNameInput").value = "";
+            document.getElementById("medDoseInput").value = "";
+            document.getElementById("medNotesInput").value = "";
+            document.getElementById("medFormTitle").innerText = "➕ إضافة علاج جديد للروشتة";
+            document.getElementById("cancelEditMedBtn").classList.add("hidden");
+        }
+
+        function saveMedication() {
+            var patient = findUserById(selectedPatientIdForMed);
+            if (!patient) return;
+            var name = document.getElementById("medNameInput").value.trim();
+            var dose = document.getElementById("medDoseInput").value.trim();
+            var notes = document.getElementById("medNotesInput").value.trim();
+            var editId = document.getElementById("editingMedId").value;
+
+            if (!name || !dose) return showToast("يرجى كتابة اسم الدواء والجرعة!", "error");
+            if (!patient.medications) patient.medications = [];
+            var currentDateStamp = getFormattedDate();
+
+            if (editId) {
+                for (var i = 0; i < patient.medications.length; i++) {
+                    if (patient.medications[i].id == editId) {
+                        patient.medications[i].name = name;
+                        patient.medications[i].dose = dose;
+                        patient.medications[i].notes = notes;
+                        patient.medications[i].addedDate = "تم التعديل: " + currentDateStamp;
+                    }
+                }
+                showToast("تم تحديث الدواء بنجاح", "success");
+            } else {
+                patient.medications.push({ id: Date.now(), name: name, dose: dose, notes: notes, addedDate: currentDateStamp });
+                showToast("تمت إضافة الدواء للروشتة بنجاح", "success");
+            }
+
+            saveData();
+            resetMedForm();
+            renderDoctorMedList();
+            renderAccountsTable();
+        }
+
+        function renderDoctorMedList() {
+            var patient = findUserById(selectedPatientIdForMed);
+            var container = document.getElementById("doctorMedListContainer");
+            container.innerHTML = "";
+            if (!patient || !patient.medications || patient.medications.length === 0) {
+                container.innerHTML = '<p style="color:#94a3b8; font-size:13px;">لا توجد أدوية مسجلة في روشتة هذا المريض.</p>';
+                return;
+            }
+            for (var i = 0; i < patient.medications.length; i++) {
+                var m = patient.medications[i];
+                container.innerHTML += '<div class="med-item">' +
+                    '<div class="med-info">' +
+                        '<h4 style="margin:0; font-size:14px; color:#1e293b;">💊 ' + escapeHtml(m.name) + '</h4>' +
+                        '<p style="margin:2px 0; font-size:12.5px;"><b>الجرعة:</b> ' + escapeHtml(m.dose) + '</p>' +
+                        (m.notes ? '<p style="margin:2px 0; font-size:12px; color:#64748b;"><b>ملاحظة:</b> ' + escapeHtml(m.notes) + '</p>' : '') +
+                        '<span class="date-stamp">🕒 ' + escapeHtml(m.addedDate || 'حديثاً') + '</span>' +
+                    '</div>' +
+                    '<div style="display:flex; gap:4px;">' +
+                        '<button type="button" class="btn btn-warning" onclick="startEditMed(' + m.id + ')">تعديل</button>' +
+                        '<button type="button" class="btn btn-danger" onclick="deleteMed(' + m.id + ')">حذف</button>' +
+                    '</div>' +
+                '</div>';
+            }
+        }
+
+        function startEditMed(medId) {
+            var patient = findUserById(selectedPatientIdForMed);
+            if (!patient) return;
+            for (var i = 0; i < patient.medications.length; i++) {
+                if (patient.medications[i].id === medId) {
+                    var med = patient.medications[i];
+                    document.getElementById("editingMedId").value = med.id;
+                    document.getElementById("medNameInput").value = med.name;
+                    document.getElementById("medDoseInput").value = med.dose;
+                    document.getElementById("medNotesInput").value = med.notes || "";
+                    document.getElementById("medFormTitle").innerText = "✏️ تعديل الدواء بالروشتة";
+                    document.getElementById("cancelEditMedBtn").classList.remove("hidden");
+                }
+            }
+        }
+
+        function deleteMed(medId) {
+            var patient = findUserById(selectedPatientIdForMed);
+            if (!patient) return;
+            patient.medications = patient.medications.filter(function(m) { return m.id !== medId; });
+            saveData();
+            renderDoctorMedList();
+            renderAccountsTable();
+            showToast("تم حذف الدواء من الروشتة", "info");
+        }
+
+        // طباعة الروشتة الرسمية
+        function printPrescriptionForSelected() {
+            var patient = findUserById(selectedPatientIdForMed);
+            if (!patient) return;
+            printPrescriptionGeneric(patient);
+        }
+
+        function printMyPrescription() {
+            if (!currentUser) return;
+            printPrescriptionGeneric(currentUser);
+        }
+
+        function printPrescriptionGeneric(patient) {
+            document.getElementById("printPatientName").innerText = patient.name;
+            document.getElementById("printVisitDate").innerText = getFormattedDate().split(" - ")[0];
+            document.getElementById("printDate").innerText = getFormattedDate();
+
+            var medBox = document.getElementById("printMedicationsList");
+            medBox.innerHTML = "";
+            var meds = patient.medications || [];
+            if (meds.length === 0) {
+                medBox.innerHTML = "<p>لا توجد أدوية علاجية موصوفة حالياً.</p>";
+            } else {
+                for (var i = 0; i < meds.length; i++) {
+                    var m = meds[i];
+                    medBox.innerHTML += '<div style="margin-bottom:14px; border-bottom:1px dashed #cbd5e1; padding-bottom:8px;">' +
+                        '<div style="font-size:16px; font-weight:bold; color:#1e293b;">• ' + escapeHtml(m.name) + '</div>' +
+                        '<div style="margin-right:15px; font-size:14px; color:#334155;">- الجرعة: ' + escapeHtml(m.dose) + '</div>' +
+                        (m.notes ? '<div style="margin-right:15px; font-size:12.5px; color:#64748b;">- تعليمات: ' + escapeHtml(m.notes) + '</div>' : '') +
+                    '</div>';
+                }
+            }
+            window.print();
+        }
+
+        // شاشة المريض
+        function openPatientDashboard() {
+            document.getElementById("patientScreen").classList.remove("hidden");
+            document.getElementById("patientProfileImg").src = currentUser.photo;
+            document.getElementById("patientFullName").innerText = currentUser.name;
+            var badge = document.getElementById("patientStatusBadge");
+            badge.className = currentUser.status === "paid" ? "badge badge-paid" : "badge badge-unpaid";
+            badge.innerText = currentUser.status === "paid" ? "✅ عضو مؤكد - تم دفع الحجز" : "⏳ في انتظار تأكيد السداد";
+
+            renderPatientSessions();
+            renderPatientMedications();
+            renderPatientPrivateChat();
+            renderPatientLastMood();
+        }
+
+        function selectMood(moodText, btnEl) {
+            currentSelectedMood = moodText;
+            var allBtns = document.querySelectorAll(".mood-btn");
+            allBtns.forEach(function(b) { b.classList.remove("selected"); });
+            if (btnEl) btnEl.classList.add("selected");
+        }
+
+        function submitPatientMood() {
+            if (!currentSelectedMood) return showToast("اختر حالتك أولاً بالضغط على الأيقونة!", "error");
+            var note = document.getElementById("patientMoodNote").value.trim();
+            if (!currentUser.moods) currentUser.moods = [];
+            currentUser.moods.push({
+                date: getFormattedDate(),
+                mood: currentSelectedMood,
+                note: note,
+                timestamp: Date.now()
+            });
+            saveData();
+            document.getElementById("patientMoodNote").value = "";
+            renderPatientLastMood();
+            renderPatientMoodsFeed();
+            renderAccountsTable();
+            renderDailySchedule();
+            showToast("تم تسجيل حالتك النفسية بنجاح ومشاركتها مع طبيبك المعالج!", "success");
+        }
+
+        function renderPatientLastMood() {
+            var display = document.getElementById("patientLastMoodDisplay");
+            if (!display) return;
+            var moods = currentUser.moods || [];
+            if (moods.length > 0) {
+                var last = moods[moods.length - 1];
+                display.innerHTML = "آخر تسجيل لك: <b>" + escapeHtml(last.mood) + "</b> (" + escapeHtml(last.date) + ")" + (last.note ? "<br>ملاحظتك: " + escapeHtml(last.note) : "");
+            } else {
+                display.innerText = "لم تقم بتسجيل حالتك اليوم بعد.";
+            }
+        }
+
+        function renderPatientSessions() {
+            var box = document.getElementById("patientSessionsView");
+            box.innerHTML = "";
+            var sessions = currentUser.sessions || [];
+            if (sessions.length === 0) {
+                box.innerHTML = '<p style="margin:0; font-size:13px; color:#64748b;">' + escapeHtml(currentUser.appointment || "لم يتم تحديد مواعيد جلسات بعد.") + '</p>';
+                return;
+            }
+            for (var i = 0; i < sessions.length; i++) {
+                var s = sessions[i];
+                box.innerHTML += '<div style="background:white; padding:10px 12px; border-radius:8px; margin-bottom:8px; border-right:3px solid var(--primary); font-size:13px; box-shadow:0 1px 2px rgba(0,0,0,0.05);">' +
+                    '<b style="color:var(--dark);">📆 ' + escapeHtml(s.date) + (s.time ? ' | الساعة: ' + escapeHtml(s.time) : '') + '</b><br>' +
+                    '<span style="color:#64748b; font-size:12px;">' + escapeHtml(s.note) + '</span>' +
+                '</div>';
+            }
+        }
+
+        function renderPatientMedications() {
+            var box = document.getElementById("patientMedicationsView");
+            box.innerHTML = "";
+            var meds = currentUser.medications || [];
+            if (meds.length === 0) {
+                box.innerHTML = '<p style="color:#94a3b8; font-size:13px;">لا توجد أدوية مسجلة في روشتتك حالياً.</p>';
+                return;
+            }
+            for (var i = 0; i < meds.length; i++) {
+                var m = meds[i];
+                box.innerHTML += '<div class="med-item">' +
+                    '<div class="med-info">' +
+                        '<h4 style="margin:0; font-size:14px; color:#1e293b;">💊 ' + escapeHtml(m.name) + '</h4>' +
+                        '<p style="margin:2px 0; font-size:13px;"><b>الجرعة:</b> ' + escapeHtml(m.dose) + '</p>' +
+                        (m.notes ? '<p style="margin:2px 0; font-size:12px; color:#64748b;"><b>تعليمات الطبيب:</b> ' + escapeHtml(m.notes) + '</p>' : '') +
+                        '<span class="date-stamp">🕒 أُضيف في: ' + escapeHtml(m.addedDate || 'حديثاً') + '</span>' +
+                    '</div>' +
+                '</div>';
+            }
+        }
+
+        function uploadPatientPhoto() {
+            var file = document.getElementById("photoUploadInput").files[0];
+            if (file) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    currentUser.photo = e.target.result;
+                    document.getElementById("patientProfileImg").src = currentUser.photo;
+                    saveData();
+                    showToast("تم تحديث صورتك الشخصية بنجاح!", "success");
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function changePatientPassword() {
+            var newPass = cleanText(document.getElementById("newPatientPass").value);
+            if (!newPass) return showToast("يرجى كتابة كلمة المرور الجديدة!", "error");
+            currentUser.password = newPass;
+            saveData();
+            document.getElementById("newPatientPass").value = "";
+            showToast("تم حفظ كلمة المرور الجديدة بنجاح!", "success");
+        }
+
+        // محادثات الشات والـ Enter Key
+        function updateMemberChatDropdown() {
+            var select = document.getElementById("adminMemberChatSelect");
+            if (!select) return;
+            select.innerHTML = "";
+            var patients = usersDB.filter(function(u) { return u.role === "patient"; });
+            for (var i = 0; i < patients.length; i++) {
+                select.innerHTML += '<option value="' + escapeHtml(patients[i].username) + '">👤 ' + escapeHtml(patients[i].name) + '</option>';
+            }
+        }
+
+        function renderAdminChat() {
+            var box = document.getElementById("adminChatBox");
+            if (!box) return;
+            box.innerHTML = "";
+            var select = document.getElementById("adminMemberChatSelect");
+            var selectedMember = select ? select.value : "";
+            if (!selectedMember) {
+                box.innerHTML = '<p style="color:#94a3b8; font-size:13px; text-align:center; margin-top:20px;">لا يوجد مرضى للمحادثة حالياً.</p>';
+                return;
+            }
+            var msgs = privateChats[selectedMember] || [];
+            for (var i = 0; i < msgs.length; i++) {
+                var m = msgs[i];
+                var cssClass = m.isDoc ? "msg msg-doctor" : "msg msg-user";
+                box.innerHTML += '<div class="' + cssClass + '">' +
+                    '<span class="msg-sender">' + escapeHtml(m.sender) + '</span>' +
+                    escapeHtml(m.text) +
+                    (m.time ? '<span class="msg-time">' + escapeHtml(m.time) + '</span>' : '') +
+                '</div>';
+            }
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function handleAdminChatKey(e) {
+            if (e.key === "Enter") {
+                sendAdminReply();
+            }
+        }
+
+        function sendAdminReply() {
+            var text = document.getElementById("adminChatInput").value.trim();
+            if (!text) return;
+            var selectedMember = document.getElementById("adminMemberChatSelect").value;
+            if (!selectedMember) return;
+            if (!privateChats[selectedMember]) privateChats[selectedMember] = [];
+            
+            var timePart = getFormattedDate().split(" - ")[1] || "";
+            privateChats[selectedMember].push({ sender: "الدكتور", text: text, isDoc: true, time: timePart });
+            document.getElementById("adminChatInput").value = "";
+            saveData();
+            renderAdminChat();
+        }
+
+        function renderPatientPrivateChat() {
+            var box = document.getElementById("patientPrivateChat");
+            if (!box) return;
+            box.innerHTML = "";
+            var myMsgs = privateChats[currentUser.username] || [];
+            for (var i = 0; i < myMsgs.length; i++) {
+                var m = myMsgs[i];
+                var cssClass = m.isDoc ? "msg msg-doctor" : "msg msg-user";
+                box.innerHTML += '<div class="' + cssClass + '">' +
+                    '<span class="msg-sender">' + escapeHtml(m.sender) + '</span>' +
+                    escapeHtml(m.text) +
+                    (m.time ? '<span class="msg-time">' + escapeHtml(m.time) + '</span>' : '') +
+                '</div>';
+            }
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function handlePatientChatKey(e) {
+            if (e.key === "Enter") {
+                sendPatientPrivateMsg();
+            }
+        }
+
+        function sendPatientPrivateMsg() {
+            var text = document.getElementById("patientPrivateInput").value.trim();
+            if (!text) return;
+            if (!privateChats[currentUser.username]) privateChats[currentUser.username] = [];
+            
+            var timePart = getFormattedDate().split(" - ")[1] || "";
+            privateChats[currentUser.username].push({ sender: currentUser.name, text: text, isDoc: false, time: timePart });
+            document.getElementById("patientPrivateInput").value = "";
+            saveData();
+            renderPatientPrivateChat();
+        }
+
+        // كشف حالة الإنترنت (Online / Offline)
+        function checkNetworkStatus() {
+            var badge = document.getElementById("netStatusBadge");
+            var offlineBanner = document.getElementById("offlineBanner");
+            if (navigator.onLine) {
+                badge.className = "net-status net-online";
+                badge.innerText = "🟢 متصل بالإنترنت";
+                offlineBanner.style.display = "none";
+            } else {
+                badge.className = "net-status net-offline";
+                badge.innerText = "🔴 وضع عدم الاتصال (Offline)";
+                offlineBanner.style.display = "block";
+            }
+        }
+
+        window.addEventListener('online', checkNetworkStatus);
+        window.addEventListener('offline', checkNetworkStatus);
+
+        // تشغيل أولي عند تحميل الصفحة
+        window.onload = function() {
+            checkNetworkStatus();
+            initFirebaseRealtimeSync();
+
+            // دعم زر Enter في تسجيل الدخول
+            document.getElementById("loginPass").addEventListener("keypress", function(e) {
+                if (e.key === "Enter") login();
+            });
+            document.getElementById("loginUser").addEventListener("keypress", function(e) {
+                if (e.key === "Enter") login();
+            });
+
+            showToast("نظام العيادة النفسية متصل بالسحابة وجاهز للعمل!", "success");
+        };
+    </script>
+</body>
+</html>
